@@ -45,6 +45,7 @@ UART_HandleTypeDef huart1;
 /* USER CODE BEGIN PV */
 uint8_t pc_data[3];
 uint8_t command_from_pc = 0;
+uint8_t str[]= "UART transmitting data\r\n";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,7 +58,14 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if((pc_data[0] == 0x7E) && (pc_data[2] == 0xAB))
+	{
+		command_from_pc = pc_data[1];
+	}
+	HAL_UART_Receive_IT(&huart1, pc_data, 3);
+}
 /* USER CODE END 0 */
 
 /**
@@ -99,6 +107,30 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		if (command_from_pc == 0xA0)
+		{
+			HAL_UART_Transmit_IT(&huart1, pc_data, 3);
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_7);
+			HAL_Delay(500);
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_7);
+			command_from_pc = 0;
+		}
+		else if (command_from_pc == 0xA1)
+		{
+			HAL_UART_Transmit_IT(&huart1, pc_data, 3);
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+			HAL_Delay(500);
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+			command_from_pc = 0;
+		}
+		else if(command_from_pc == 0xA2)
+		{
+			HAL_UART_Transmit_IT(&huart1, pc_data, 3);
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+			HAL_Delay(500);
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+			command_from_pc = 0;
+		}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
