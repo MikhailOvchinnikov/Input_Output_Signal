@@ -124,7 +124,7 @@ int main(void)
 		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[2], 1, 1000);
 		for(int i = 0; i < 3;i++)
 		{
-			data_ac[i] = (uint16_t)data_ac_p[i] << 24;
+			data_ac[i] = (uint16_t)data_ac_p[i] << 8;
 			data_ac[i] += (uint16_t)data_ac_p[i];
 		}
 		adress_register[0] = 0x3C;
@@ -136,11 +136,6 @@ int main(void)
 		adress_register[0] = 0x40;
 		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
 		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[2], 1, 1000);
-		for(int i = 0; i < 3;i++)
-		{
-			data_ac[i] = (uint16_t)data_ac_p[i] << 16;
-			data_ac[i] += (uint16_t)data_ac_p[i];
-		}
 		HAL_UART_Transmit_IT(&huart1, (uint8_t*)data_ac, 3);
 		HAL_Delay(500);
 		
@@ -155,7 +150,7 @@ int main(void)
 		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[2], 1, 1000);
 		for(int i = 0; i < 3;i++)
 		{
-			data_gyr[i] = (uint16_t)data_gyr_p[i] << 24;
+			data_gyr[i] = (uint16_t)data_gyr_p[i] << 8;
 			data_gyr[i] += (uint16_t)data_gyr_p[i];
 		}
 		adress_register[0] = 0x44;
@@ -167,11 +162,6 @@ int main(void)
 		adress_register[0] = 0x48;
 		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
 		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[2], 1, 1000);
-		for(int i = 0; i < 3;i++)
-		{
-			data_gyr[i] = (uint16_t)data_gyr_p[i] << 16;
-			data_gyr[i] += (uint16_t)data_gyr_p[i];
-		}
 		HAL_UART_Transmit_IT(&huart1, (uint8_t*)data_gyr, 3);
 		HAL_Delay(500);
 		/*if (command_from_pc == 0xA0)
