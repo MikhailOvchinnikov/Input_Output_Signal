@@ -40,32 +40,40 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c1;
+
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 uint8_t pc_data[3];
 uint8_t command_from_pc = 0;
 uint8_t str[]= "UART transmitting data\r\n";
+uint16_t data_ac[3] = {0x00, 0x00, 0x00};
+uint16_t data_gyr[3] = {0x00, 0x00, 0x00};
+uint8_t data_ac_p[3] = {0x00, 0x00, 0x00};
+uint8_t data_gyr_p[3] = {0x00, 0x00, 0x00};
+uint8_t adress_register[1] = {0x00};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+/*void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if((pc_data[0] == 0x7E) && (pc_data[2] == 0xAB))
 	{
 		command_from_pc = pc_data[1];
 	}
 	HAL_UART_Receive_IT(&huart1, pc_data, 3);
-}
+}*/
 /* USER CODE END 0 */
 
 /**
@@ -97,17 +105,76 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-	char buf[50];
-	strcpy(buf, "Hello world!\n");
-	HAL_UART_Receive_IT(&huart1, pc_data, 3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		if (command_from_pc == 0xA0)
+		adress_register[0] = 0x3B;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[0], 1, 1000);
+		adress_register[0] = 0x3D;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[1], 1, 1000);
+		adress_register[0] = 0x3F;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[2], 1, 1000);
+		for(int i = 0; i < 3;i++)
+		{
+			data_ac[i] = (uint16_t)data_ac_p[i] << 24;
+			data_ac[i] += (uint16_t)data_ac_p[i];
+		}
+		adress_register[0] = 0x3C;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[0], 1, 1000);
+		adress_register[0] = 0x3E;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[1], 1, 1000);
+		adress_register[0] = 0x40;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[2], 1, 1000);
+		for(int i = 0; i < 3;i++)
+		{
+			data_ac[i] = (uint16_t)data_ac_p[i] << 16;
+			data_ac[i] += (uint16_t)data_ac_p[i];
+		}
+		HAL_UART_Transmit_IT(&huart1, (uint8_t*)data_ac, 3);
+		HAL_Delay(500);
+		
+		adress_register[0] = 0x43;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[0], 1, 1000);
+		adress_register[0] = 0x45;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[1], 1, 1000);
+		adress_register[0] = 0x47;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[2], 1, 1000);
+		for(int i = 0; i < 3;i++)
+		{
+			data_gyr[i] = (uint16_t)data_gyr_p[i] << 24;
+			data_gyr[i] += (uint16_t)data_gyr_p[i];
+		}
+		adress_register[0] = 0x44;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[0], 1, 1000); 
+		adress_register[0] = 0x46;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[1], 1, 1000);
+		adress_register[0] = 0x48;
+		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
+		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[2], 1, 1000);
+		for(int i = 0; i < 3;i++)
+		{
+			data_gyr[i] = (uint16_t)data_gyr_p[i] << 16;
+			data_gyr[i] += (uint16_t)data_gyr_p[i];
+		}
+		HAL_UART_Transmit_IT(&huart1, (uint8_t*)data_gyr, 3);
+		HAL_Delay(500);
+		/*if (command_from_pc == 0xA0)
 		{
 			HAL_UART_Transmit_IT(&huart1, pc_data, 3);
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_7);
@@ -130,7 +197,7 @@ int main(void)
 			HAL_Delay(500);
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
 			command_from_pc = 0;
-		}
+		}*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -175,6 +242,40 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
