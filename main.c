@@ -127,17 +127,7 @@ int main(void)
 		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[2], 1, 1000);
 		for(int i = 0; i < 3;i++)
 		{
-			data_ac[i] = (uint16_t)data_ac_p[i] >> 8;
-			data_ac[i] += (uint16_t)data_ac_p[i];
-			data_ac[i] = data_ac[i]*360/0x00FF;
-			if(data_ac[i] < 180)
-			{
-				data_ac[i] = 180 + data_ac[i];
-			}
-			else
-			{
-				data_ac[i] = data_ac[i] - 180;
-			}
+			data_ac[i] = (uint16_t)data_ac_p[i] << 8;
 		}
 		adress_register[0] = 0x3C;
 		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
@@ -149,6 +139,19 @@ int main(void)
 		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
 		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_ac_p[2], 1, 1000);
 		
+		for(int i = 0; i < 3; i++)
+		{
+			data_ac[i] += (uint16_t)data_ac_p[i];
+			data_ac[i] *= 360/0x00FF;
+			if(data_ac[i] < 180)
+			{
+				data_ac[i] += 180;
+			}
+			else
+			{
+				data_ac[i] -=180;
+			}
+		}
 		/*sprintf(buf, "$%d %d %d;",data_ac[0], data_ac[1], data_ac[2]);
 		HAL_UART_Transmit_IT(&huart1, (uint8_t*)buf, strlen(buf));*/
 		
@@ -163,17 +166,7 @@ int main(void)
 		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[2], 1, 1000);
 		for(int i = 0; i < 3;i++)
 		{
-			data_gyr[i] = (uint16_t)data_gyr_p[i] >> 8;
-			data_gyr[i] += (uint16_t)data_gyr_p[i];
-			data_gyr[i] = data_gyr[i]*360/0x00FF - 180;
-			if(data_gyr[i] < 180)
-			{
-				data_gyr[i] = 180 + data_gyr[i];
-			}
-			else
-			{
-				data_gyr[i] = data_gyr[i] - 180;
-			}
+			data_gyr[i] = (uint16_t)data_gyr_p[i] << 8;
 		}
 		adress_register[0] = 0x44;
 		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
@@ -184,6 +177,20 @@ int main(void)
 		adress_register[0] = 0x48;
 		HAL_I2C_Master_Transmit (&hi2c1, (uint16_t)0xD1, (uint8_t*) adress_register, 1, 1000);
 		HAL_I2C_Master_Receive (&hi2c1, (uint16_t)0xD1, &data_gyr_p[2], 1, 1000);
+		
+		for(int i = 0; i < 3;i++)
+		{
+			data_gyr[i] += (uint16_t)data_gyr_p[i];
+			data_gyr[i] *= 360/0x00FF - 180;
+			if(data_gyr[i] < 180)
+			{
+				data_gyr[i] += 180;
+			}
+			else
+			{
+				data_gyr[i] -=180;
+			}
+		}
 		//sprintf(buf, "$%d %d %d;",data_gyr[0], data_gyr[1], data_gyr[2]);
 		//HAL_UART_Transmit_IT(&huart1, (uint8_t*)buf, strlen(buf));
 		int16_t temp_dif_ac = 180 - data_ac[0];
